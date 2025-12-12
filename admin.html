@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Restaurant Billing</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            margin: 20px;
+        }
+
+        .login-box h1 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .login-box form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .login-box input {
+            padding: 1rem;
+            border: 2px solid #eee;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .error-message {
+            color: #ff4757;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .admin-dashboard {
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        .admin-header {
+            background: white;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .admin-header h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        .admin-nav {
+            background: white;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 0.6rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .admin-main {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 0 1rem;
+        }
+
+        .admin-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .admin-section h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .admin-section h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .add-item-form {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .add-item-form form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .add-item-form input[type="text"],
+        .add-item-form input[type="number"] {
+            padding: 0.75rem;
+            border: 2px solid #eee;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .add-item-form input[type="file"] {
+            grid-column: 1 / -1;
+            padding: 0.75rem;
+            border: 2px solid #eee;
+            border-radius: 5px;
+        }
+
+        .image-preview {
+            grid-column: 1 / -1;
+            margin-top: 1rem;
+        }
+
+        .image-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 2px solid #eee;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .admin-menu-item {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #eee;
+        }
+
+        .admin-menu-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .admin-menu-item h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .admin-menu-item .price {
+            color: #667eea;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .edit-btn, .delete-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .edit-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #5568d3;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #ff3838;
+        }
+
+        .report-filters {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .report-filters label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .report-filters select,
+        .report-filters input {
+            padding: 0.75rem;
+            border: 2px solid #eee;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .report-summary {
+            margin-bottom: 2rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary-card h4 {
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .summary-card p {
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .report-details {
+            margin-top: 2rem;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .report-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .report-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .chart-container {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .transaction-filters {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .transaction-filters label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .transaction-filters input {
+            padding: 0.75rem;
+            border: 2px solid #eee;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .transaction-card {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .transaction-card h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .transaction-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .transaction-items {
+            margin: 1rem 0;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-total {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2em;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-content h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .modal-content input {
+            padding: 0.75rem;
+            border: 2px solid #eee;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #999;
+            padding: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .login-box {
+                padding: 1.5rem;
+                margin: 10px;
+            }
+
+            .login-box h1 {
+                font-size: 1.3rem;
+                margin-bottom: 1rem;
+            }
+
+            .admin-header {
+                padding: 1rem;
+            }
+
+            .admin-header h1 {
+                font-size: 1.3rem;
+            }
+
+            .admin-nav {
+                flex-direction: row;
+                padding: 0.75rem;
+            }
+
+            .nav-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.85rem;
+                min-width: 100px;
+            }
+
+            .admin-main {
+                padding: 0 0.5rem;
+                margin: 0.5rem auto;
+            }
+
+            .admin-section {
+                padding: 1rem;
+            }
+
+            .admin-section h2 {
+                font-size: 1.3rem;
+                margin-bottom: 1rem;
+            }
+
+            .admin-section h3 {
+                font-size: 1.1rem;
+            }
+
+            .add-item-form {
+                padding: 1rem;
+            }
+
+            .add-item-form form {
+                grid-template-columns: 1fr;
+            }
+
+            .items-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .admin-menu-item {
+                padding: 1rem;
+            }
+
+            .admin-menu-item img {
+                height: 100px;
+            }
+
+            .admin-menu-item h4 {
+                font-size: 1rem;
+            }
+
+            .report-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .report-filters label {
+                min-width: 100%;
+            }
+
+            .transaction-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .transaction-filters label {
+                min-width: 100%;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .report-table {
+                font-size: 0.85rem;
+            }
+
+            .report-table th,
+            .report-table td {
+                padding: 0.5rem;
+            }
+
+            .chart-container {
+                padding: 1rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                margin: 10px;
+                width: calc(100% - 20px);
+            }
+
+            .transaction-card {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-menu-item img {
+                height: 150px;
+            }
+
+            .nav-btn {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+                min-width: 90px;
+            }
+
+            .report-table {
+                font-size: 0.75rem;
+            }
+
+            .report-table th,
+            .report-table td {
+                padding: 0.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <h1>Admin Login</h1>
+            <form onsubmit="handleLogin(event)">
+                <input type="password" id="adminPassword" placeholder="Enter password" required>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <p id="loginError" class="error-message"></p>
+        </div>
+    </div>
+
+    <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+        <header class="admin-header">
+            <h1>Admin Panel</h1>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </header>
+
+        <nav class="admin-nav">
+            <button class="nav-btn active" onclick="showSection('menu')">Menu Management</button>
+            <button class="nav-btn" onclick="showSection('sales')">Sales Report</button>
+            <button class="nav-btn" onclick="showSection('transactions')">Transactions</button>
+        </nav>
+
+        <main class="admin-main">
+            <section id="menuSection" class="admin-section">
+                <h2>Menu Management</h2>
+                
+                <div class="add-item-form">
+                    <h3>Add New Item</h3>
+                    <form onsubmit="handleAddItem(event)">
+                        <input type="text" id="itemName" placeholder="Item Name" required>
+                        <input type="number" id="itemPrice" placeholder="Price (₹)" step="0.01" required>
+                        <input type="file" id="itemImage" accept="image/*" onchange="handleImagePreview(event)">
+                        <div class="image-preview" id="imagePreview"></div>
+                        <button type="submit" class="btn btn-primary">Add Item</button>
+                    </form>
+                </div>
+
+                <div class="menu-items-list">
+                    <h3>Current Menu Items</h3>
+                    <div class="items-grid" id="menuItemsGrid"></div>
+                </div>
+            </section>
+
+            <section id="salesSection" class="admin-section" style="display: none;">
+                <h2>Monthly Sales Report</h2>
+                
+                <div class="report-filters">
+                    <label>
+                        Month:
+                        <select id="reportMonth">
+                            <option value="0">January</option>
+                            <option value="1">February</option>
+                            <option value="2">March</option>
+                            <option value="3">April</option>
+                            <option value="4">May</option>
+                            <option value="5">June</option>
+                            <option value="6">July</option>
+                            <option value="7">August</option>
+                            <option value="8">September</option>
+                            <option value="9">October</option>
+                            <option value="10">November</option>
+                            <option value="11">December</option>
+                    </select>
+                    </label>
+                    <label>
+                        Year:
+                        <input type="number" id="reportYear" value="2024" min="2020" max="2030">
+                    </label>
+                    <button class="btn btn-primary" onclick="generateSalesReport()">Generate Report</button>
+                    <button class="btn btn-secondary" onclick="exportReport()">Export CSV</button>
+                </div>
+
+                <div class="report-summary" id="reportSummary"></div>
+                <div class="report-details" id="reportDetails"></div>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </section>
+
+            <section id="transactionsSection" class="admin-section" style="display: none;">
+                <h2>Transaction History</h2>
+                
+                <div class="transaction-filters">
+                    <label>
+                        From Date:
+                        <input type="date" id="fromDate">
+                    </label>
+                    <label>
+                        To Date:
+                        <input type="date" id="toDate">
+                    </label>
+                    <button class="btn btn-primary" onclick="filterTransactions()">Filter</button>
+                    <button class="btn btn-secondary" onclick="loadAllTransactions()">Show All</button>
+                </div>
+
+                <div class="transactions-list" id="transactionsList"></div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Menu Item</h2>
+            <form onsubmit="handleEditItem(event)">
+                <input type="hidden" id="editItemId">
+                <input type="text" id="editItemName" placeholder="Item Name" required>
+                <input type="number" id="editItemPrice" placeholder="Price (₹)" step="0.01" required>
+                <input type="file" id="editItemImage" accept="image/*" onchange="handleEditImagePreview(event)">
+                <div class="image-preview" id="editImagePreview"></div>
+                <button type="submit" class="btn btn-primary">Update Item</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let salesChart = null;
+        let currentReportData = null;
+
+        // Initialize admin password
+        function initializeAdmin() {
+            if (!localStorage.getItem('adminPassword')) {
+                localStorage.setItem('adminPassword', 'admin123');
+            }
+            if (!localStorage.getItem('adminLoggedIn')) {
+                localStorage.setItem('adminLoggedIn', 'false');
+            }
+        }
+
+        // Check authentication
+        function checkAuth() {
+            const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
+            if (isLoggedIn) {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                loadMenuItems();
+                loadAllTransactions();
+            } else {
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('adminDashboard').style.display = 'none';
+            }
+        }
+
+        // Handle login
+        function handleLogin(event) {
+            event.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+            const storedPassword = localStorage.getItem('adminPassword');
+
+            if (password === storedPassword) {
+                localStorage.setItem('adminLoggedIn', 'true');
+                document.getElementById('loginError').classList.remove('show');
+                checkAuth();
+            } else {
+                document.getElementById('loginError').textContent = 'Invalid password!';
+                document.getElementById('loginError').classList.add('show');
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.setItem('adminLoggedIn', 'false');
+            checkAuth();
+        }
+
+        // Show section
+        function showSection(section) {
+            document.querySelectorAll('.admin-section').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(section + 'Section').style.display = 'block';
+            event.target.classList.add('active');
+
+            if (section === 'sales') {
+                generateSalesReport();
+            }
+        }
+
+        // Load menu items
+        function loadMenuItems() {
+            const menuItems = JSON.parse(localStorage.getItem('menuItems') || '[]');
+            const menuItemsGrid = document.getElementById('menuItemsGrid');
+            menuItemsGrid.innerHTML = '';
+
+            if (menuItems.length === 0) {
+                menuItemsGrid.innerHTML = '<p class="no-data">No menu items. Add some items to get started.</p>';
+                return;
+            }
+
+            menuItems.forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'admin-menu-item';
+                menuItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop'">
+                    <h4>${item.name}</h4>
+                    <div class="price">₹${item.price}</div>
+                    <div class="item-actions">
+                        <button class="edit-btn" onclick="openEditModal(${item.id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteMenuItem(${item.id})">Delete</button>
+                    </div>
+                `;
+                menuItemsGrid.appendChild(menuItem);
+            });
+        }
+
+        // Handle image preview
+        function handleImagePreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    preview.dataset.image = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Handle add item
+        function handleAddItem(event) {
+            event.preventDefault();
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            const imagePreview = document.getElementById('imagePreview');
+            const image = imagePreview.dataset.image || `https://via.placeholder.com/200x150?text=${name}`;
+
+            const menuItems = JSON.parse(localStorage.getItem('menuItems') || '[]');
+            const newItem = {
+                id: menuItems.length > 0 ? Math.max(...menuItems.map(item => item.id)) + 1 : 1,
+                name: name,
+                price: price,
+                image: image
+            };
+
+            menuItems.push(newItem);
+            localStorage.setItem('menuItems', JSON.stringify(menuItems));
+
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemImage').value = '';
+            imagePreview.innerHTML = '';
+            delete imagePreview.dataset.image;
+
+            loadMenuItems();
+            alert('Item added successfully!');
+        }
+
+        // Open edit modal
+        function openEditModal(itemId) {
+            const menuItems = JSON.parse(localStorage.getItem('menuItems') || '[]');
+            const item = menuItems.find(item => item.id === itemId);
+
+            if (item) {
+                document.getElementById('editItemId').value = item.id;
+                document.getElementById('editItemName').value = item.name;
+                document.getElementById('editItemPrice').value = item.price;
+                document.getElementById('editImagePreview').innerHTML = `<img src="${item.image}" alt="Preview">`;
+                document.getElementById('editImagePreview').dataset.image = item.image;
+                document.getElementById('editModal').classList.add('show');
+            }
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        // Handle edit image preview
+        function handleEditImagePreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('editImagePreview');
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    preview.dataset.image = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Handle edit item
+        function handleEditItem(event) {
+            event.preventDefault();
+            const id = parseInt(document.getElementById('editItemId').value);
+            const name = document.getElementById('editItemName').value;
+            const price = parseFloat(document.getElementById('editItemPrice').value);
+            const imagePreview = document.getElementById('editImagePreview');
+            const image = imagePreview.dataset.image || `https://via.placeholder.com/200x150?text=${name}`;
+
+            const menuItems = JSON.parse(localStorage.getItem('menuItems') || '[]');
+            const itemIndex = menuItems.findIndex(item => item.id === id);
+
+            if (itemIndex !== -1) {
+                menuItems[itemIndex] = { id: id, name: name, price: price, image: image };
+                localStorage.setItem('menuItems', JSON.stringify(menuItems));
+                loadMenuItems();
+                closeEditModal();
+                alert('Item updated successfully!');
+            }
+        }
+
+        // Delete menu item
+        function deleteMenuItem(itemId) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                const menuItems = JSON.parse(localStorage.getItem('menuItems') || '[]');
+                const filteredItems = menuItems.filter(item => item.id !== itemId);
+                localStorage.setItem('menuItems', JSON.stringify(filteredItems));
+                loadMenuItems();
+                alert('Item deleted successfully!');
+            }
+        }
+
+        // Generate sales report
+        function generateSalesReport() {
+            const month = parseInt(document.getElementById('reportMonth').value);
+            const year = parseInt(document.getElementById('reportYear').value);
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+
+            const monthTransactions = transactions.filter(transaction => {
+                const transactionDate = new Date(transaction.date);
+                return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
+            });
+
+            if (monthTransactions.length === 0) {
+                document.getElementById('reportSummary').innerHTML = '<p class="no-data">No sales data for this month.</p>';
+                document.getElementById('reportDetails').innerHTML = '';
+                if (salesChart) {
+                    salesChart.destroy();
+                }
+                return;
+            }
+
+            const totalSales = monthTransactions.reduce((sum, t) => sum + t.total, 0);
+            const totalTransactions = monthTransactions.length;
+            const averageTransaction = totalSales / totalTransactions;
+
+            // Item-wise sales
+            const itemSales = {};
+            monthTransactions.forEach(transaction => {
+                transaction.items.forEach(item => {
+                    if (!itemSales[item.name]) {
+                        itemSales[item.name] = { quantity: 0, revenue: 0 };
+                    }
+                    itemSales[item.name].quantity += item.quantity;
+                    itemSales[item.name].revenue += item.price * item.quantity;
+                });
+            });
+
+            // Daily sales
+            const dailySales = {};
+            monthTransactions.forEach(transaction => {
+                const date = new Date(transaction.date).toDateString();
+                if (!dailySales[date]) {
+                    dailySales[date] = 0;
+                }
+                dailySales[date] += transaction.total;
+            });
+
+            // Display summary
+            document.getElementById('reportSummary').innerHTML = `
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <h4>Total Sales</h4>
+                        <p>₹${totalSales.toFixed(2)}</p>
+                    </div>
+                    <div class="summary-card">
+                        <h4>Total Transactions</h4>
+                        <p>${totalTransactions}</p>
+                    </div>
+                    <div class="summary-card">
+                        <h4>Average Transaction</h4>
+                        <p>₹${averageTransaction.toFixed(2)}</p>
+                    </div>
+                </div>
+            `;
+
+            // Display item-wise sales
+            let itemWiseHTML = '<h3>Item-wise Sales</h3><table class="report-table"><thead><tr><th>Item</th><th>Quantity Sold</th><th>Revenue</th></tr></thead><tbody>';
+            Object.entries(itemSales).sort((a, b) => b[1].revenue - a[1].revenue).forEach(([item, data]) => {
+                itemWiseHTML += `<tr><td>${item}</td><td>${data.quantity}</td><td>₹${data.revenue.toFixed(2)}</td></tr>`;
+            });
+            itemWiseHTML += '</tbody></table>';
+
+            // Display daily sales
+            let dailyHTML = '<h3>Daily Sales</h3><table class="report-table"><thead><tr><th>Date</th><th>Sales</th></tr></thead><tbody>';
+            Object.entries(dailySales).sort((a, b) => new Date(a[0]) - new Date(b[0])).forEach(([date, sales]) => {
+                dailyHTML += `<tr><td>${date}</td><td>₹${sales.toFixed(2)}</td></tr>`;
+            });
+            dailyHTML += '</tbody></table>';
+
+            document.getElementById('reportDetails').innerHTML = itemWiseHTML + dailyHTML;
+
+            // Chart
+            if (salesChart) {
+                salesChart.destroy();
+            }
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            const dates = Object.keys(dailySales).sort((a, b) => new Date(a) - new Date(b));
+            const sales = dates.map(date => dailySales[date]);
+
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Daily Sales (₹)',
+                        data: sales,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            currentReportData = { monthTransactions, itemSales, dailySales, totalSales, totalTransactions };
+        }
+
+        // Export report
+        function exportReport() {
+            if (!currentReportData) {
+                alert('Please generate a report first!');
+                return;
+            }
+
+            let csv = 'Item,Quantity Sold,Revenue\n';
+            Object.entries(currentReportData.itemSales).forEach(([item, data]) => {
+                csv += `${item},${data.quantity},${data.revenue.toFixed(2)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sales-report-${document.getElementById('reportMonth').value}-${document.getElementById('reportYear').value}.csv`;
+            a.click();
+        }
+
+        // Load all transactions
+        function loadAllTransactions() {
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            displayTransactions(transactions);
+        }
+
+        // Filter transactions
+        function filterTransactions() {
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            if (!fromDate || !toDate) {
+                alert('Please select both from and to dates!');
+                return;
+            }
+
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            const filtered = transactions.filter(transaction => {
+                const transactionDate = new Date(transaction.date);
+                const from = new Date(fromDate);
+                const to = new Date(toDate);
+                to.setHours(23, 59, 59, 999);
+                return transactionDate >= from && transactionDate <= to;
+            });
+
+            displayTransactions(filtered);
+        }
+
+        // Display transactions
+        function displayTransactions(transactions) {
+            const transactionsList = document.getElementById('transactionsList');
+            transactionsList.innerHTML = '';
+
+            if (transactions.length === 0) {
+                transactionsList.innerHTML = '<p class="no-data">No transactions found.</p>';
+                return;
+            }
+
+            transactions.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(transaction => {
+                const transactionCard = document.createElement('div');
+                transactionCard.className = 'transaction-card';
+                
+                let itemsHTML = '';
+                transaction.items.forEach(item => {
+                    itemsHTML += `
+                        <div class="transaction-item">
+                            <span>${item.name} x ${item.quantity}</span>
+                            <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+
+                transactionCard.innerHTML = `
+                    <h4>Transaction #${transaction.id}</h4>
+                    <div class="transaction-date">${new Date(transaction.date).toLocaleString()}</div>
+                    <div class="transaction-items">${itemsHTML}</div>
+                    <div class="transaction-total">
+                        <span>Total:</span>
+                        <span>₹${transaction.total.toFixed(2)}</span>
+                    </div>
+                `;
+                transactionsList.appendChild(transactionCard);
+            });
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            initializeAdmin();
+            checkAuth();
+            const currentDate = new Date();
+            document.getElementById('reportMonth').value = currentDate.getMonth();
+            document.getElementById('reportYear').value = currentDate.getFullYear();
+        };
+    </script>
+</body>
+</html>

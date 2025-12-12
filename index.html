@@ -667,12 +667,12 @@
         // Initialize default menu if not exists
         function initializeMenu() {
             const imageMap = {
-                'Idly': 'https://images.unsplash.com/photo-1632929787516-4b701cc7d2e3?w=400&h=300&fit=crop&q=80',
-                'Dosa': 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400&h=300&fit=crop&q=80',
-                'Poori': 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop&q=80',
-                'Tea': 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop&q=80',
-                'Coffee': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=300&fit=crop&q=80',
-                'Snacks': 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop&q=80'
+                'Idly': 'images/Idly.jpg',
+                'Dosa': 'images/Dosa.jpg',
+                'Poori': 'images/Poori.jpg',
+                'Tea': 'images/Tea.jpg',
+                'Coffee': 'images/Coffee.jpg',
+                'Snacks': 'images/Snacks.jpg'
             };
 
             if (!localStorage.getItem('menuItems')) {
@@ -712,7 +712,7 @@
                 menuItem.className = 'menu-item';
                 menuItem.onclick = () => addToCart(item);
                 menuItem.innerHTML = `
-                    <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop'">
+                    <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.onerror=null; this.src='images/fallback.jpg'">
                     <h3>${item.name}</h3>
                     <div class="price">₹${item.price}</div>
                 `;
